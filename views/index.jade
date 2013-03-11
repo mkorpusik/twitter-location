@@ -1,0 +1,8 @@
+extends layout
+
+block content
+  h1= title
+  form(id="get_tweets", action='/search', method='post')
+    input(type='text', placeholder='keyword', name='keyword')
+    div(class="control-group")
+      input(class="btn btn-large btn-primary", type="submit", value="Search!")

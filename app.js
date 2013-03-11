@@ -113,44 +113,73 @@ app.get('/stream', loginRequired, function (req, res) {
   });
 })
 
-app.get('/', loginRequired, function (req, res) {
+app.post('/search', loginRequired, function (req, res) {
+
+  console.log("req.body", req.body);
+  var keyword = req.body.keyword;
+  // var tweets = [];
+  var tweets_dict = {};
+
 
   // search for tweets created near Boston
   req.api('search/tweets').get({
-    q: 'olin',
+    q: keyword,
     geocode: '42.3583,-71.0603,25mi',
     until: '2013-03-10'
   }, function (err, stream) {
-    res.write('\nTweets near Boston, MA');
+    var tweets = [];
+    var location = 'Boston, MA';
+    // res.write('\nTweets near Boston, MA');
     for (var i in stream.statuses) {
-      res.write('\n' + stream.statuses[i].user.name + '\n');
-      res.write(stream.statuses[i].text + '\n');
+      tweets.push(stream.statuses[i].text + '\n');
+      // res.write('\n' + stream.statuses[i].user.name + '\n');
+      // res.write(stream.statuses[i].text + '\n');
     }
+  tweets_dict[location] = tweets;
+  res.render('tweets', { tweets:tweets_dict, title: 'Tweets' })
   });
 
   // search for tweets created near SF
   req.api('search/tweets').get({
-    q: 'olin',
+    q: keyword,
     geocode: '37.775,-122.4183,25mi',
     until: '2013-03-10'
   }, function (err, stream) {
-    res.write('\nTweets near San Francisco, CA');
+    var tweets = [];
+    var location = 'San Francisco, CA';
+    // res.write('\nTweets near San Francisco, CA');
     for (var i in stream.statuses) {
-      res.write('\n' + stream.statuses[i].user.name + '\n');
-      res.write(stream.statuses[i].text + '\n');
+      tweets.push(stream.statuses[i].text + '\n');
+      // res.write('\n' + stream.statuses[i].user.name + '\n');
+      // res.write(stream.statuses[i].text + '\n');
     }
+  tweets_dict[location] = tweets;
+  res.render('tweets', { tweets:tweets_dict, title: 'Tweets' })
   });
 
   // search for tweets created near NY
   req.api('search/tweets').get({
-    q: 'olin',
+    q: keyword,
     geocode: '40.7142,-74.0064,25mi',
     until: '2013-03-10'
   }, function (err, stream) {
-    res.write('\nTweets near New York, NY');
+    var tweets = [];
+    var location = 'New York, NY';
+    // res.write('\nTweets near New York, NY');
     for (var i in stream.statuses) {
-      res.write('\n' + stream.statuses[i].user.name + '\n');
-      res.write(stream.statuses[i].text + '\n');
+      tweets.push(stream.statuses[i].text + '\n');
+      // res.write('\n' + stream.statuses[i].user.name + '\n');
+      // res.write(stream.statuses[i].text + '\n');
     }
+  tweets_dict[location] = tweets;
+  res.render('tweets', { tweets:tweets_dict, title: 'Tweets' })
   });
+  
+
 })
+
+app.get('/', loginRequired, function(req, res){
+  res.render('index', { title: 'Tweet Locations' })
+});
+  
+
