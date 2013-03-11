@@ -1,0 +1,22 @@
+{
+  "name": "twitter",
+  "version": "0.0.0",
+  "description": "Twitter express examples",
+  "main": "app.js",
+  "dependencies": {
+    "express": "~3.1.0",
+    "rem": "~0.6.3-2",
+    "carrier": "~0.1.10"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/olinjs/twitter.git"
+  },
+  "author": "",
+  "license": "BSD",
+  "readmeFilename": "README.md"
+}
