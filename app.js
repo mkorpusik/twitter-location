@@ -136,50 +136,47 @@ app.post('/search', loginRequired, function (req, res) {
       // res.write(stream.statuses[i].text + '\n');
     }
   tweets_dict[location] = tweets;
-  res.render('tweets', { tweets:tweets_dict, title: 'Tweets' })
-  });
-
-  // search for tweets created near SF
-  req.api('search/tweets').get({
-    q: keyword,
-    geocode: '37.775,-122.4183,25mi',
-    until: '2013-03-10'
-  }, function (err, stream) {
-    var tweets = [];
-    var location = 'San Francisco, CA';
-    // res.write('\nTweets near San Francisco, CA');
-    for (var i in stream.statuses) {
-      tweets.push(stream.statuses[i].text + '\n');
-      // res.write('\n' + stream.statuses[i].user.name + '\n');
-      // res.write(stream.statuses[i].text + '\n');
-    }
-  tweets_dict[location] = tweets;
-  res.render('tweets', { tweets:tweets_dict, title: 'Tweets' })
-  });
-
-  // search for tweets created near NY
-  req.api('search/tweets').get({
-    q: keyword,
-    geocode: '40.7142,-74.0064,25mi',
-    until: '2013-03-10'
-  }, function (err, stream) {
-    var tweets = [];
-    var location = 'New York, NY';
-    // res.write('\nTweets near New York, NY');
-    for (var i in stream.statuses) {
-      tweets.push(stream.statuses[i].text + '\n');
-      // res.write('\n' + stream.statuses[i].user.name + '\n');
-      // res.write(stream.statuses[i].text + '\n');
-    }
-  tweets_dict[location] = tweets;
-  res.render('tweets', { tweets:tweets_dict, title: 'Tweets' })
-  });
-  
+  // res.render('tweets', { tweets:tweets_dict, title: 'Tweets' })
+    // search for tweets created near SF
+    req.api('search/tweets').get({
+      q: keyword,
+      geocode: '37.775,-122.4183,25mi',
+      until: '2013-03-10'
+    }, function (err, stream) {
+      var tweets = [];
+      var location = 'San Francisco, CA';
+      // res.write('\nTweets near San Francisco, CA');
+      for (var i in stream.statuses) {
+        tweets.push(stream.statuses[i].text + '\n');
+        // res.write('\n' + stream.statuses[i].user.name + '\n');
+        // res.write(stream.statuses[i].text + '\n');
+      }
+    tweets_dict[location] = tweets;
+    // res.render('tweets', { tweets:tweets_dict, title: 'Tweets' })
+      // search for tweets created near NY
+      req.api('search/tweets').get({
+        q: keyword,
+        geocode: '40.7142,-74.0064,25mi',
+        until: '2013-03-10'
+      }, function (err, stream) {
+        var tweets = [];
+        var location = 'New York, NY';
+        // res.write('\nTweets near New York, NY');
+        for (var i in stream.statuses) {
+          tweets.push(stream.statuses[i].text + '\n');
+          // res.write('\n' + stream.statuses[i].user.name + '\n');
+          // res.write(stream.statuses[i].text + '\n');
+        }
+      tweets_dict[location] = tweets;
+      res.render('tweets', { tweets:tweets_dict, title: 'Tweets' })
+      });
+    });
+  }); 
 
 })
 
 app.get('/', loginRequired, function(req, res){
-  res.render('index', { title: 'Tweet Locations' })
+  res.render('index', { title: 'Search for Tweets by Keyword' })
 });
   
 
