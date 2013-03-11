@@ -124,6 +124,7 @@ app.post('/search', loginRequired, function (req, res) {
   // search for tweets created near Boston
   req.api('search/tweets').get({
     q: keyword,
+    count: 100,
     geocode: '42.3583,-71.0603,25mi',
     until: '2013-03-10'
   }, function (err, stream) {
@@ -140,6 +141,7 @@ app.post('/search', loginRequired, function (req, res) {
     // search for tweets created near SF
     req.api('search/tweets').get({
       q: keyword,
+      count: 100,
       geocode: '37.775,-122.4183,25mi',
       until: '2013-03-10'
     }, function (err, stream) {
@@ -156,6 +158,7 @@ app.post('/search', loginRequired, function (req, res) {
       // search for tweets created near NY
       req.api('search/tweets').get({
         q: keyword,
+        count: 100,
         geocode: '40.7142,-74.0064,25mi',
         until: '2013-03-10'
       }, function (err, stream) {
