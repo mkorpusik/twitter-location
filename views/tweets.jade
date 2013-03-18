@@ -3,8 +3,9 @@ extends layout
 block content
   h1= title
   div(id="container")
-    each tweet_list, location in tweets
+    each tweet_properties, tweet in tweets
       div(id="wrapper")
-        h4 Location: #{location}
-        each tweet, i in tweet_list
-          p #{tweet}
+        p #{tweet}
+        //- each tweet has sentiment and location properties
+        each property, i in tweet_properties
+          p #{property}

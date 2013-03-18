@@ -2,6 +2,7 @@
 var rem = require('rem')
   , express = require('express')
   , path = require('path')
+  , http = require("http")
 
 /**
  * Express.
@@ -113,65 +114,79 @@ app.get('/stream', loginRequired, function (req, res) {
   });
 })
 
-app.post('/search', loginRequired, function (req, res) {
+var tweets_dict = {}; // global dictionary of tweets mapped to list of location and sentiment
 
+function getSentiment(tweet, location, render_page, res) {
+  // calculates the sentiment of the tweet
+  var url = 'http://www.sentiment140.com/api/classify?text='+encodeURIComponent(tweet);
+  http.get(url, function(res2) {
+    res2.setEncoding('utf8');
+    res2.on('data', function (chunk) {
+      var json = JSON.parse(chunk);
+      var sentiment = json.results.polarity; // 0 = negative, 2 = neutral, 4 = positive
+      // console.log(tweet, sentiment);
+      // saves the tweet (along with sentiment and location) to the global tweets_dict
+      tweets_dict[tweet + '\n'] = [sentiment, location];
+  
+      // if render_page is true (i.e. all tweets have been found), renders jade
+      if (render_page) {
+        res.render('tweets', { tweets:tweets_dict, title: 'Tweets' })
+      }
+    });
+  }).on('error', function(e) {
+    console.log("Got error: " + e.message);
+  });
+}
+
+app.post('/search', loginRequired, function (req, res) {
   console.log("req.body", req.body);
   var keyword = req.body.keyword;
-  // var tweets = [];
-  var tweets_dict = {};
-
+  // searches for all tweets with keyword in Boston, SF, and NY
+  tweets_dict = {}; // resets global tweet dict to be empty
 
   // search for tweets created near Boston
   req.api('search/tweets').get({
     q: keyword,
     count: 100,
     geocode: '42.3583,-71.0603,25mi',
-    until: '2013-03-10'
+    until: '2013-03-17'  // NOTE: this needs to be adjusted!!! if not recent enough, no tweets are returned
   }, function (err, stream) {
-    var tweets = [];
     var location = 'Boston, MA';
-    // res.write('\nTweets near Boston, MA');
     for (var i in stream.statuses) {
-      tweets.push(stream.statuses[i].text + '\n');
-      // res.write('\n' + stream.statuses[i].user.name + '\n');
-      // res.write(stream.statuses[i].text + '\n');
+      var tweet = stream.statuses[i].text;
+      getSentiment(tweet, location, false, res);
     }
-  tweets_dict[location] = tweets;
-  // res.render('tweets', { tweets:tweets_dict, title: 'Tweets' })
+
     // search for tweets created near SF
     req.api('search/tweets').get({
       q: keyword,
       count: 100,
       geocode: '37.775,-122.4183,25mi',
-      until: '2013-03-10'
+      until: '2013-03-17' // NOTE: this needs to be adjusted!!! if not recent enough, no tweets are returned
     }, function (err, stream) {
-      var tweets = [];
       var location = 'San Francisco, CA';
-      // res.write('\nTweets near San Francisco, CA');
       for (var i in stream.statuses) {
-        tweets.push(stream.statuses[i].text + '\n');
-        // res.write('\n' + stream.statuses[i].user.name + '\n');
-        // res.write(stream.statuses[i].text + '\n');
+        var tweet = stream.statuses[i].text;
+        getSentiment(tweet, location, false, res);
       }
-    tweets_dict[location] = tweets;
-    // res.render('tweets', { tweets:tweets_dict, title: 'Tweets' })
+
       // search for tweets created near NY
       req.api('search/tweets').get({
         q: keyword,
         count: 100,
         geocode: '40.7142,-74.0064,25mi',
-        until: '2013-03-10'
+        until: '2013-03-17'  // NOTE: this needs to be adjusted!!! if not recent enough, no tweets are returned
       }, function (err, stream) {
-        var tweets = [];
         var location = 'New York, NY';
-        // res.write('\nTweets near New York, NY');
         for (var i in stream.statuses) {
-          tweets.push(stream.statuses[i].text + '\n');
-          // res.write('\n' + stream.statuses[i].user.name + '\n');
-          // res.write(stream.statuses[i].text + '\n');
+          var tweet = stream.statuses[i].text;
+          // if processing last tweet in the stream, render results page
+          if (i==stream.statuses.length-1) {
+            getSentiment(tweet, location, true, res);
+          } else {
+            getSentiment(tweet, location, false, res);
+          }
         }
-      tweets_dict[location] = tweets;
-      res.render('tweets', { tweets:tweets_dict, title: 'Tweets' })
       });
     });
   }); 
@@ -182,4 +197,3 @@ app.get('/', loginRequired, function(req, res){
   res.render('index', { title: 'Search for Tweets by Keyword' })
 });
   
-
