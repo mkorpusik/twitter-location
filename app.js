@@ -149,7 +149,7 @@ app.post('/search', loginRequired, function (req, res) {
     q: keyword,
     count: 100,
     geocode: '42.3583,-71.0603,25mi',
-    until: '2013-03-17'  // NOTE: this needs to be adjusted!!! if not recent enough, no tweets are returned
+    until: '2013-03-24'  // NOTE: this needs to be adjusted!!! if not recent enough, no tweets are returned
   }, function (err, stream) {
     var location = 'Boston, MA';
     for (var i in stream.statuses) {
@@ -162,7 +162,7 @@ app.post('/search', loginRequired, function (req, res) {
       q: keyword,
       count: 100,
       geocode: '37.775,-122.4183,25mi',
-      until: '2013-03-17' // NOTE: this needs to be adjusted!!! if not recent enough, no tweets are returned
+      until: '2013-03-24' // NOTE: this needs to be adjusted!!! if not recent enough, no tweets are returned
     }, function (err, stream) {
       var location = 'San Francisco, CA';
       for (var i in stream.statuses) {
@@ -175,7 +175,7 @@ app.post('/search', loginRequired, function (req, res) {
         q: keyword,
         count: 100,
         geocode: '40.7142,-74.0064,25mi',
-        until: '2013-03-17'  // NOTE: this needs to be adjusted!!! if not recent enough, no tweets are returned
+        until: '2013-03-24'  // NOTE: this needs to be adjusted!!! if not recent enough, no tweets are returned
       }, function (err, stream) {
         var location = 'New York, NY';
         for (var i in stream.statuses) {
