@@ -1,6 +1,15 @@
 extends layout
 
 block content
+  h1= "map info"
+  div(id="container2")
+    each location_properties, location in map_info
+      div(id="wrapper")
+        p Location: #{location}
+        //- each location has number tweets & sentiment
+        p Number of tweets: #{location_properties[0]}
+        p Average sentiment: #{location_properties[1]}
+
   h1= title
   div(id="container")
     each tweet_properties, tweet in tweets
@@ -9,3 +18,4 @@ block content
         //- each tweet has sentiment and location properties
         each property, i in tweet_properties
           p #{property}
+
