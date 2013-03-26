@@ -1,6 +1,6 @@
 doctype 5
 html
-    head
+  head
     title= title
     meta(charset='utf-8')
     link(href="http://bootswatch.com/spruce/bootstrap.min.css", rel="stylesheet")
@@ -10,6 +10,7 @@ html
       body {
         padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
       }
+    block heading
 
   body
     .navbar.navbar-inverse.navbar-fixed-top
@@ -28,5 +29,4 @@ html
                 a(href='#') About
               li
                 a(href='#') Contact
-    .container
-      block content
+    block content

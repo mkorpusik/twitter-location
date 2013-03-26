@@ -118,7 +118,7 @@ var tweets_dict = {}; // global dictionary of tweets mapped to list of location 
 
 function getMapInfo() {
   // populate dictionary of locations (lat/lon) mapped to # tweets & average sentiment
-  var map_dict = {}; 
+  var map_info = []; 
   var loc1 = 'Boston, MA';
   var loc2 = 'San Francisco, CA';
   var loc3 = 'New York, NY';
@@ -147,12 +147,11 @@ function getMapInfo() {
     }
   }
 
-  // assign values to map_dict
-  map_dict['42.3583,-71.0603'] = [num1, sent1/num1];
-  map_dict['37.775,-122.4183'] = [num2, sent2/num2];
-  map_dict['40.7142,-74.0064'] = [num3, sent3/num3];
-
-  return map_dict;
+  // assign values to map_info
+  map_info.push([[42.3583,-71.0603], num1, sent1/num1]);
+  map_info.push([[37.775,-122.4183], num2, sent2/num2]);
+  map_info.push([[40.7142,-74.0064], num3, sent3/num3]);
+  return map_info;
 }
 
 function getSentiment(tweet, location, render_page, res) {
@@ -169,8 +168,8 @@ function getSentiment(tweet, location, render_page, res) {
   
       // if render_page is true (i.e. all tweets have been found), renders jade
       if (render_page) {
-        var map_dict = getMapInfo();
-        res.render('tweets', { tweets:tweets_dict, map_info:map_dict, title: 'tweets' })
+        var map_info = getMapInfo();
+        res.render('tweets', { tweets:tweets_dict, map_info:map_info, title: 'tweets' })
       }
     });
   }).on('error', function(e) {
@@ -235,5 +234,9 @@ app.post('/search', loginRequired, function (req, res) {
 
 app.get('/', loginRequired, function(req, res){
   res.render('index', { title: 'Search for Tweets by Keyword' })
+});
+
+app.get('/test', function(req, res){
+  res.render('index', {title: 'Title'})
 });
   

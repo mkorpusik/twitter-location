@@ -1,21 +1,75 @@
 extends layout
 
+block heading
+  script(type='text/javascript', src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDX4Fw2VFDqPU46MERB-3Z5IXTaaXWhF1Y&sensor=false")
+  script(type='text/javascript')
+    var map;
+    function initialize() {
+      var mapOptions = {
+        center: new google.maps.LatLng(39.8282, -98.5795),
+        zoom: 4,
+        mapTypeId: google.maps.MapTypeId.ROADMAP
+      };
+      map = new google.maps.Map(document.getElementById("map_canvas"),
+          mapOptions);
+    }
+
+    function makeMarker(c0, c1, size, color, tweets) {
+      var latLng = new google.maps.LatLng(parseFloat(c0), parseFloat(c1));
+      var marker = new google.maps.Marker({
+        position: latLng,
+        map: map,
+        icon: getCircle(size, color)
+      });
+      onClick(marker, tweets);
+    }
+
+    function getCircle(size, color) {
+      return {
+        path: google.maps.SymbolPath.CIRCLE,
+        fillColor: color,
+        fillOpacity: .5,
+        scale: size/8,
+        strokeColor: 'white',
+        strokeWeight: .5
+      };
+    }
+
+    function onClick(marker, tweets) {
+      var message = tweets;
+      var infowindow = new google.maps.InfoWindow(
+          { content: message,
+            size: new google.maps.Size(50,50)
+          });
+      google.maps.event.addListener(marker, 'click', function() {
+        infowindow.open(map,marker);
+      });
+    }
+
 block content
-  h1= "map info"
-  div(id="container2")
-    each location_properties, location in map_info
-      div(id="wrapper")
-        p Location: #{location}
-        //- each location has number tweets & sentiment
-        p Number of tweets: #{location_properties[0]}
-        p Average sentiment: #{location_properties[1]}
+  .container
+    h1 Map
+    #map_canvas(style='width:800px; height:500px;')
+    h1= "map info"
+    div(id="container2")
+      each location in map_info
+        div(id="wrapper")
+          p Location: #{location[0]}
+          //- each location has number tweets & sentiment
+          p Number of tweets: #{location[1]}
+          p Average sentiment: #{location[2]}
 
-  h1= title
-  div(id="container")
-    each tweet_properties, tweet in tweets
-      div(id="wrapper")
-        p #{tweet}
-        //- each tweet has sentiment and location properties
-        each property, i in tweet_properties
-          p #{property}
+  script(type='text/javascript')
+    initialize();
+  each loc in map_info
+      script(type='text/javascript')
+        makeMarker(parseFloat('#{loc[0][0]}'), parseFloat('#{loc[0][1]}'), parseFloat('#{loc[1]}'), 'rgb(20,128,173)', 'surprise');
 
+//  h1= title
+      div(id="container")
+        each tweet_properties, tweet in tweets
+          div(id="wrapper")
+            p #{tweet}
+            //- each tweet has sentiment and location properties
+            each property, i in tweet_properties
+              p #{property}
