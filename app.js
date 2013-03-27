@@ -205,8 +205,10 @@ app.post('/search', loginRequired, function (req, res) {
   //callback
   function(err){
     
+    var locTweetsList = [];
     // calculate average sentiment for each location
     for (var location in results_dict) {
+      var tweets = results_dict[location][0];
       var sentiments = results_dict[location][1];
       var num_tweets = results_dict[location][2];
       var sum_sentiments = 0;
@@ -215,8 +217,26 @@ app.post('/search', loginRequired, function (req, res) {
         sum_sentiments += sentiment;
       }
       // add average sentiment to results dict
-      results_dict[location][3] = sum_sentiments / num_tweets;
+      var avg = sum_sentiments / num_tweets
+      results_dict[location][3] = avg;
+
+      // save each location's info to mongodb
+      var locTweets = new LocTweets({ tweets: tweets, sentiments: sentiments, num_tweets: num_tweets, avg_sentiment: avg, loc: location});
+      locTweets.save(function (err) {
+        if (err)
+          return console.log(err);
+      });
+      locTweetsList.push(locTweets);
     }
+
+    // save all keyword info to mongodb
+    var keyword = new Keyword({keyword: keyword, locationTweets: locTweetsList});
+    keyword.save(function (err) {
+      if (err)
+        return console.log(err);
+    });
+
+    // render jade file
     res.render('tweets', { tweets:results_dict, title: 'tweets' })
   });
 
