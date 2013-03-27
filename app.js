@@ -5,6 +5,11 @@ var rem = require('rem')
   , http = require("http")
   , async = require('async')
 
+// Mondodb variables
+var models = require('models');
+var LocTweets = models.LocTweets;
+var Keyword = models.Keyword;
+
 /**
  * Express.
  */
