@@ -52,24 +52,18 @@ block content
     #map_canvas(style='width:800px; height:500px;')
     h1= "map info"
     div(id="container2")
-      each location in map_info
+      each tweet_properties, location in tweets
         div(id="wrapper")
-          p Location: #{location[0]}
-          //- each location has number tweets & sentiment
-          p Number of tweets: #{location[1]}
-          p Average sentiment: #{location[2]}
+          p Location: #{location}
+          //- each location has tweets, number tweets, sentiments, and average sentiment
+          p Number of tweets: #{tweet_properties[2]}
+          p Average sentiment: #{tweet_properties[3]}
+          p Tweets: #{tweet_properties[0]}
+          p Sentiments: #{tweet_properties[1]}
 
   script(type='text/javascript')
     initialize();
-  each loc in map_info
-      script(type='text/javascript')
-        makeMarker(parseFloat('#{loc[0][0]}'), parseFloat('#{loc[0][1]}'), parseFloat('#{loc[1]}'), 'rgb(20,128,173)', 'surprise');
+  each info, loc in tweets
+    script(type='text/javascript')
+      makeMarker(parseFloat('#{info[4][0]}'), parseFloat('#{info[4][1]}'), parseFloat('#{info[2]}'), 'rgb(20,128,173)', 'surprise');
 
-//  h1= title
-      div(id="container")
-        each tweet_properties, tweet in tweets
-          div(id="wrapper")
-            p #{tweet}
-            //- each tweet has sentiment and location properties
-            each property, i in tweet_properties
-              p #{property}

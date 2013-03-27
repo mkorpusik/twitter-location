@@ -3,6 +3,7 @@ var rem = require('rem')
   , express = require('express')
   , path = require('path')
   , http = require("http")
+  , async = require('async')
 
 /**
  * Express.
@@ -114,47 +115,7 @@ app.get('/stream', loginRequired, function (req, res) {
   });
 })
 
-var tweets_dict = {}; // global dictionary of tweets mapped to list of location & sentiment
-
-function getMapInfo() {
-  // populate dictionary of locations (lat/lon) mapped to # tweets & average sentiment
-  var map_info = []; 
-  var loc1 = 'Boston, MA';
-  var loc2 = 'San Francisco, CA';
-  var loc3 = 'New York, NY';
-  var num1 = 0; // number tweets for loc1
-  var num2 = 0;
-  var num3 = 0;
-  var sent1 = 0; // total sentiment for loc1
-  var sent2 = 0;
-  var sent3 = 0;
-
-  // loop through all tweets
-  for (var tweet in tweets_dict) {
-
-    // increment num tweets & update sentiment for given location
-    if (loc1 == tweets_dict[tweet][1]) {
-      num1 += 1;
-      sent1 += tweets_dict[tweet][0];
-    } 
-    else if (loc2 == tweets_dict[tweet][1]) {
-      num2 += 1;
-      sent2 += tweets_dict[tweet][0];
-    }
-    else if (loc3 == tweets_dict[tweet][1]) {
-      num3 += 1;
-      sent3 += tweets_dict[tweet][0];
-    }
-  }
-
-  // assign values to map_info
-  map_info.push([[42.3583,-71.0603], num1, sent1/num1]);
-  map_info.push([[37.775,-122.4183], num2, sent2/num2]);
-  map_info.push([[40.7142,-74.0064], num3, sent3/num3]);
-  return map_info;
-}
-
-function getSentiment(tweet, location, render_page, res) {
+function getSentiment(tweet, location, callback, ready) {
   // calculates the sentiment of the tweet
   var url = 'http://www.sentiment140.com/api/classify?text='+encodeURIComponent(tweet);
   http.get(url, function(res2) {
@@ -163,13 +124,13 @@ function getSentiment(tweet, location, render_page, res) {
       var json = JSON.parse(chunk);
       var sentiment = json.results.polarity; // 0 = negative, 2 = neutral, 4 = positive
       // console.log(tweet, sentiment);
-      // saves the tweet (along with sentiment and location) to the global tweets_dict
-      tweets_dict[tweet + '\n'] = [sentiment, location];
-  
-      // if render_page is true (i.e. all tweets have been found), renders jade
-      if (render_page) {
-        var map_info = getMapInfo();
-        res.render('tweets', { tweets:tweets_dict, map_info:map_info, title: 'tweets' })
+
+      // appends the sentiment to the global results dict for the given location
+      results_dict[location][1].push(sentiment);
+
+      // call callback when ready
+      if (ready){
+        callback(null);
       }
     });
   }).on('error', function(e) {
@@ -177,60 +138,84 @@ function getSentiment(tweet, location, render_page, res) {
   });
 }
 
-app.post('/search', loginRequired, function (req, res) {
-  console.log("req.body", req.body);
-  var keyword = req.body.keyword;
-  // searches for all tweets with keyword in Boston, SF, and NY
-  tweets_dict = {}; // resets global tweet dict to be empty
-
-  // search for tweets created near Boston
+function getTweets(index, req, keyword, callback) {
+  // calls Twitter search API on keyword for the location at the given index in the global locations list
   req.api('search/tweets').get({
     q: keyword,
     count: 100,
-    geocode: '42.3583,-71.0603,25mi',
-    until: '2013-03-24'  // NOTE: this needs to be adjusted!!! if not recent enough, no tweets are returned
+    geocode: locations[index].toString() + ',25mi',
+    until: '2013-03-26'  // NOTE: this needs to be adjusted!!! if not recent enough, no tweets are returned
   }, function (err, stream) {
-    var location = 'Boston, MA';
+    var location = locations[index];
+    var tweets = []; // list of all tweets
     for (var i in stream.statuses) {
       var tweet = stream.statuses[i].text;
-      getSentiment(tweet, location, false, res);
+      tweets.push(tweet);
+
+      // only call callback when done processing the last tweet
+      if (i==stream.statuses.length-1){
+        getSentiment(tweet, location, callback, true);
+      }
+      else {
+        getSentiment(tweet, location, callback, false);
+      }
     }
+    results_dict[location][0] = tweets;
+    results_dict[location][2] = tweets.length;
+    results_dict[location][4] = location;
+  });
+}
+
+var locations = [[42.3583,-71.0603], [37.775,-122.4183], [40.7142,-74.0064]]; // global list of locations
+var results_dict = {} // global dict mapping loc to tweets list, sentiments list, # tweets, avg sentiment, & loc
+
+app.post('/search', loginRequired, function (req, res) {
+  var keyword = req.body.keyword;
+
+  // re-initialize global results dict
+  results_dict = {};
+  for (var i in locations) {
+    var location = locations[i];
+    results_dict[location] = [[], [], 0, 0, []]; 
+  } 
+
+  // searches for all tweets with keyword in Boston, SF, and NY
+  async.parallel([
+    // search for tweets created near Boston
+    function(callback){
+      getTweets(0, req, keyword, callback); // 0 is the index in global locations list for Boston's coordinates
+    },
 
     // search for tweets created near SF
-    req.api('search/tweets').get({
-      q: keyword,
-      count: 100,
-      geocode: '37.775,-122.4183,25mi',
-      until: '2013-03-24' // NOTE: this needs to be adjusted!!! if not recent enough, no tweets are returned
-    }, function (err, stream) {
-      var location = 'San Francisco, CA';
-      for (var i in stream.statuses) {
-        var tweet = stream.statuses[i].text;
-        getSentiment(tweet, location, false, res);
+    function(callback){
+      getTweets(1, req, keyword, callback);
+    },
+
+    // search for tweets created near NY
+    function(callback){
+      getTweets(2, req, keyword, callback);
+    }
+  ],
+
+  //callback
+  function(err){
+    
+    // calculate average sentiment for each location
+    for (var location in results_dict) {
+      var sentiments = results_dict[location][1];
+      var num_tweets = results_dict[location][2];
+      var sum_sentiments = 0;
+      for (var i in sentiments) {
+        var sentiment = sentiments[i];
+        sum_sentiments += sentiment;
       }
+      // add average sentiment to results dict
+      results_dict[location][3] = sum_sentiments / num_tweets;
+    }
+    res.render('tweets', { tweets:results_dict, title: 'tweets' })
+  });
 
-      // search for tweets created near NY
-      req.api('search/tweets').get({
-        q: keyword,
-        count: 100,
-        geocode: '40.7142,-74.0064,25mi',
-        until: '2013-03-24'  // NOTE: this needs to be adjusted!!! if not recent enough, no tweets are returned
-      }, function (err, stream) {
-        var location = 'New York, NY';
-        for (var i in stream.statuses) {
-          var tweet = stream.statuses[i].text;
-          // if processing last tweet in the stream, render results page
-          if (i==stream.statuses.length-1) {
-            getSentiment(tweet, location, true, res);
-          } else {
-            getSentiment(tweet, location, false, res);
-          }
-        }
-      });
-    });
-  }); 
-
-})
+});
 
 app.get('/', loginRequired, function(req, res){
   res.render('index', { title: 'Search for Tweets by Keyword' })
