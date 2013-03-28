@@ -8,7 +8,6 @@ var rem = require('rem')
 // Mondodb variables
 var models = require('models');
 var LocTweets = models.LocTweets;
-var Keyword = models.Keyword;
 
 /**
  * Express.
@@ -184,60 +183,88 @@ app.post('/search', loginRequired, function (req, res) {
     results_dict[location] = [[], [], 0, 0, []]; 
   } 
 
-  // searches for all tweets with keyword in Boston, SF, and NY
-  async.parallel([
-    // search for tweets created near Boston
-    function(callback){
-      getTweets(0, req, keyword, callback); // 0 is the index in global locations list for Boston's coordinates
-    },
+  // check whether keyword has already been saved to mongodb
+  var exists =  LocTweets.find({"keyword":keyword}, function (err, docs) {
+    // console.log(docs);
 
-    // search for tweets created near SF
-    function(callback){
-      getTweets(1, req, keyword, callback);
-    },
+    // keyword has been searched already
+    if (docs.length>0) {
+      console.log("keyword has been searched already!");
 
-    // search for tweets created near NY
-    function(callback){
-      getTweets(2, req, keyword, callback);
-    }
-  ],
-
-  //callback
-  function(err){
-    
-    var locTweetsList = [];
-    // calculate average sentiment for each location
-    for (var location in results_dict) {
-      var tweets = results_dict[location][0];
-      var sentiments = results_dict[location][1];
-      var num_tweets = results_dict[location][2];
-      var sum_sentiments = 0;
-      for (var i in sentiments) {
-        var sentiment = sentiments[i];
-        sum_sentiments += sentiment;
+      // populate resulst_dict
+      for (var i in docs){
+        var loc_dict = docs[i];
+        var location = loc_dict.loc;
+        results_dict[location][0] = loc_dict.tweets;
+        results_dict[location][1] = loc_dict.sentiments;
+        results_dict[location][2] = loc_dict.num_tweets;
+        results_dict[location][3] = loc_dict.avg_sentiment;
+        results_dict[location][4] = location;
       }
-      // add average sentiment to results dict
-      var avg = sum_sentiments / num_tweets
-      results_dict[location][3] = avg;
 
-      // save each location's info to mongodb
-      var locTweets = new LocTweets({ tweets: tweets, sentiments: sentiments, num_tweets: num_tweets, avg_sentiment: avg, loc: location});
-      locTweets.save(function (err) {
-        if (err)
-          return console.log(err);
+      // render jade with db info
+      res.render('tweets', { tweets:results_dict, title: 'tweets' })
+      return;
+    }
+    
+    // call Twitter search API if keyword not in db yet
+    else if (docs.length==0){
+      console.log("new keyword");
+
+      // searches for all tweets with keyword in Boston, SF, and NY
+      async.parallel([
+
+        // search for tweets created near Boston
+        function(callback){
+          getTweets(0, req, keyword, callback); // 0 is the index in global locations list for Boston's coordinates
+        },
+
+        // search for tweets created near SF
+        function(callback){
+          getTweets(1, req, keyword, callback);
+        },
+
+        // search for tweets created near NY
+        function(callback){
+          getTweets(2, req, keyword, callback);
+        }
+      ],
+
+      //callback
+      function(err){
+    
+        // calculate average sentiment for each location
+        for (var location in results_dict) {
+          var tweets = results_dict[location][0];
+          var sentiments = results_dict[location][1];
+          var num_tweets = results_dict[location][2];
+          var sum_sentiments = 0;
+          for (var i in sentiments) {
+            var sentiment = sentiments[i];
+            sum_sentiments += sentiment;
+          }
+          // add average sentiment to results dict
+          var avg = sum_sentiments / num_tweets
+          results_dict[location][3] = avg;
+
+          // save each location's info to mongodb
+          location = location.toString(); // location list must be formatted properly (list of floats)
+          location = location.split(',');
+          var locTweets = new LocTweets({ keyword: keyword, tweets: tweets, sentiments: sentiments, num_tweets: num_tweets, avg_sentiment: avg, loc: [parseFloat(location[0]), parseFloat(location[1])]});
+          locTweets.save(function (err) {
+            if (err)
+              return console.log(err);
+          });
+        }
+
+        // render jade file
+        res.render('tweets', { tweets:results_dict, title: 'tweets' })
       });
-      locTweetsList.push(locTweets);
+
     }
 
-    // save all keyword info to mongodb
-    var keyword = new Keyword({keyword: keyword, locationTweets: locTweetsList});
-    keyword.save(function (err) {
-      if (err)
-        return console.log(err);
-    });
-
-    // render jade file
-    res.render('tweets', { tweets:results_dict, title: 'tweets' })
+    if (err)
+      return console.log(err);
   });
 
 });
