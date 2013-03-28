@@ -21,18 +21,18 @@ html
   body
     .navbar.navbar-inverse.navbar-fixed-top
       .navbar-inner
-        .container
+        .container(style='background-color: rgb(68, 0, 68); width: 1129px')
           button.btn.btn-navbar(type='button', data-toggle='collapse', data-target='.nav-collapse')
             span.icon-bar
             span.icon-bar
             span.icon-bar
-          a(href='#').brand {grapevine}
+          a(href='#', style='font-size:30px; margin:5px;margin-left:70px; color: rgb(95, 134, 95)').brand {grapevine}
           .nav-collapse.collapse
             ul.nav
               li.active
-                a(href='/') Home
+                a(href='/', style='font-size:15px; margin-top:5px; background-color: rgb(37, 0, 37); color: rgb(200, 240, 200)') Home
               li
-                a(href='#') About
+                a(href='#', style='font-size:15px; margin-top:5px; color: rgb(100, 120, 100)') About
               li
-                a(href='#') Contact
+                a(href='#', style='font-size:15px; margin-top:5px; color: rgb(100, 120, 100)') Contact
     block content
