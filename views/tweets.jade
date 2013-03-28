@@ -47,19 +47,20 @@ block heading
     }
 
 block content
-  .container
-    h1 Map
-    #map_canvas(style='width:800px; height:500px;')
-    h1= "map info"
-    div(id="container2")
-      each tweet_properties, location in tweets
-        div(id="wrapper")
-          p Location: #{location}
-          //- each location has tweets, number tweets, sentiments, and average sentiment
-          p Number of tweets: #{tweet_properties[2]}
-          p Average sentiment: #{tweet_properties[3]}
-          //- p Tweets: #{tweet_properties[0]}
-          //- p Sentiments: #{tweet_properties[1]}
+  .container(style='height:100%')
+    .row-fluid(style='height:100%')
+      .span8(style='height:100%')
+        #map_canvas(style='width:95%; height:90%')
+      h1= "map info"
+      div(id="container2")
+        each tweet_properties, location in tweets
+          div(id="wrapper")
+            p Location: #{location}
+            //- each location has tweets, number tweets, sentiments, and average sentiment
+            p Number of tweets: #{tweet_properties[2]}
+            p Average sentiment: #{tweet_properties[3]}
+            p Tweets: #{tweet_properties[0]}
+            p Sentiments: #{tweet_properties[1]}
 
   script(type='text/javascript')
     initialize();

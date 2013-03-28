@@ -170,7 +170,11 @@ function getTweets(index, req, keyword, callback) {
   });
 }
 
-var locations = [[42.3583,-71.0603], [37.775,-122.4183], [40.7142,-74.0064]]; // global list of locations
+var locations = [[42.3583,-71.0603], [37.775,-122.4183], [40.7142,-74.0064], //bos, ny, sf
+        [34.0522, -118.2428], [41.85, -87.65], [29.7631, -95.3631]]; //la, chicago, houston
+        // [39.9522, -75.1642], [33.5722, -112.0880], [29.4724, -98.5251], //philly, phoenix, san antonio
+        // [32.8153, -117.1350], [32.7942, -96.7655], [30.3370, -81.6613]]; //sd, dallas, jacksonville
+        // global list of locations
 var results_dict = {} // global dict mapping loc to tweets list, sentiments list, # tweets, avg sentiment, & loc
 
 app.post('/search', loginRequired, function (req, res) {
@@ -227,6 +231,15 @@ app.post('/search', loginRequired, function (req, res) {
         // search for tweets created near NY
         function(callback){
           getTweets(2, req, keyword, callback);
+        },
+        function(callback){
+          getTweets(3, req, keyword, callback);
+        },
+        function(callback){
+          getTweets(4, req, keyword, callback);
+        },
+        function(callback){
+          getTweets(5, req, keyword, callback);
         }
       ],
 

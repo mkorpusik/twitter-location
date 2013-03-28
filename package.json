@@ -8,7 +8,8 @@
     "rem": "~0.6.3-2",
     "carrier": "~0.1.10",
     "jade": "*",
-    "async": "0.2.6"
+    "async": "0.2.6",
+    "mongoose": "3.6.1"
   },
   "devDependencies": {},
   "scripts": {
