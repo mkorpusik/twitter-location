@@ -29,7 +29,7 @@ block heading
         path: google.maps.SymbolPath.CIRCLE,
         fillColor: color,
         fillOpacity: .5,
-        scale: size/8,
+        scale: size/2,
         strokeColor: 'white',
         strokeWeight: .5
       };
@@ -58,8 +58,8 @@ block content
           //- each location has tweets, number tweets, sentiments, and average sentiment
           p Number of tweets: #{tweet_properties[2]}
           p Average sentiment: #{tweet_properties[3]}
-          p Tweets: #{tweet_properties[0]}
-          p Sentiments: #{tweet_properties[1]}
+          //- p Tweets: #{tweet_properties[0]}
+          //- p Sentiments: #{tweet_properties[1]}
 
   script(type='text/javascript')
     initialize();
