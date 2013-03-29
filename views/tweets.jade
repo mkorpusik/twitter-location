@@ -41,7 +41,7 @@ block heading
         strokeWeight: .5
       };
     }
-
+    
     function onClick(marker, c0, c1) {
       google.maps.event.addListener(marker, 'click', function() {
         html = '<a href = "www.google.com">Test link</a>';
@@ -53,6 +53,7 @@ block content
   .container(style='height:100%')
     .row-fluid(style='height:100%')
       .span8(style='height:100%')
+        p Sentiment Legend: red = positive, black = negative
         #map_canvas(style='width:95%; height:90%')
       .span4#sidebar
     h1= "map info"
@@ -70,5 +71,11 @@ block content
     initialize();
   each info, loc in tweets
     script(type='text/javascript')
-      makeMarker(parseFloat('#{info[4][0]}'), parseFloat('#{info[4][1]}'), parseFloat('#{info[2]}'), 'rgb(20,128,173)', 'surprise');
-
+      var avg_sent = #{info[3]};
+      var red = Math.round(avg_sent/4*255);
+      if (avg_sent <= 2)
+        var bg = Math.round(avg_sent/2*64);
+      else
+        var bg = Math.round((avg_sent-4)/-2*64);
+      console.log(red, bg, bg)
+      makeMarker(parseFloat('#{info[4][0]}'), parseFloat('#{info[4][1]}'), parseFloat('#{info[2]}'), 'rgb('+red+', 0, 0)', 'surprise');
