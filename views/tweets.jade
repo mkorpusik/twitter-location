@@ -5,26 +5,33 @@ block heading
   script(type='text/javascript')
     var map;
     function initialize() {
+      var sw = new google.maps.LatLng(22.674847,-124.101562);
+      var ne = new google.maps.LatLng(50.120578,-64.6875);
       var mapOptions = {
         center: new google.maps.LatLng(39.8282, -98.5795),
         zoom: 4,
+        scrollwheel: false,
+        disableDefaultUI: true,
+        draggable: false,
+        keyboardShortcuts: false,
+        disableDoubleClickZoom: true,
         mapTypeId: google.maps.MapTypeId.ROADMAP
       };
       map = new google.maps.Map(document.getElementById("map_canvas"),
           mapOptions);
     }
 
-    function makeMarker(c0, c1, size, color, tweets) {
+    function makeMarker(c0, c1, size, color) {
       var latLng = new google.maps.LatLng(parseFloat(c0), parseFloat(c1));
       var marker = new google.maps.Marker({
         position: latLng,
         map: map,
-        icon: getCircle(size, color)
+        icon: makeCircle(size, color)
       });
-      onClick(marker, tweets);
+      onClick(marker, c0, c1);
     }
 
-    function getCircle(size, color) {
+    function makeCircle(size, color) {
       return {
         path: google.maps.SymbolPath.CIRCLE,
         fillColor: color,
@@ -34,15 +41,11 @@ block heading
         strokeWeight: .5
       };
     }
-
-    function onClick(marker, tweets) {
-      var message = tweets;
-      //- var infowindow = new google.maps.InfoWindow(
-      //-     { content: message,
-      //-       size: new google.maps.Size(50,50)
-      //-     });
+    
+    function onClick(marker, c0, c1) {
       google.maps.event.addListener(marker, 'click', function() {
-        //- infowindow.open(map,marker);
+        html = '<a href = "www.google.com">Test link</a>';
+        document.getElementById("sidebar").innerHTML = html;
       });
     }
 
@@ -52,16 +55,17 @@ block content
       .span8(style='height:100%')
         p Sentiment Legend: yellow = positive, blue = negative, gray = neutral
         #map_canvas(style='width:95%; height:90%')
-      h1= "map info"
-      div(id="container2")
-        each tweet_properties, location in tweets
-          div(id="wrapper")
-            p Location: #{location}
-            //- each location has tweets, number tweets, sentiments, and average sentiment
-            p Number of tweets: #{tweet_properties[2]}
-            p Average sentiment: #{tweet_properties[3]}
-            p Tweets: #{tweet_properties[0]}
-            p Sentiments: #{tweet_properties[1]}
+      .span4#sidebar
+    h1= "map info"
+    div(id="container2")
+      each tweet_properties, location in tweets
+        div(id="wrapper")
+          p Location: #{location}
+          //- each location has tweets, number tweets, sentiments, and average sentiment
+          p Number of tweets: #{tweet_properties[2]}
+          p Average sentiment: #{tweet_properties[3]}
+          p Tweets: #{tweet_properties[0]}
+          p Sentiments: #{tweet_properties[1]}
 
   script(type='text/javascript')
     initialize();
