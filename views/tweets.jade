@@ -50,7 +50,7 @@ block content
   .container(style='height:100%')
     .row-fluid(style='height:100%')
       .span8(style='height:100%')
-        p Sentiment Legend: red = positive, black = negative
+        p Sentiment Legend: yellow = positive, blue = negative, gray = neutral
         #map_canvas(style='width:95%; height:90%')
       h1= "map info"
       div(id="container2")
@@ -68,10 +68,17 @@ block content
   each info, loc in tweets
     script(type='text/javascript')
       var avg_sent = #{info[3]};
+
+      //- variables used for yellow-blue color scheme
+      var rg = Math.round(avg_sent/4*255);
+      var blue = Math.round((avg_sent-4)/-4*255);
+
+      //- variables used for red-black color scheme
       var red = Math.round(avg_sent/4*255);
       if (avg_sent <= 2)
         var bg = Math.round(avg_sent/2*64);
       else
         var bg = Math.round((avg_sent-4)/-2*64);
-      console.log(red, bg, bg)
-      makeMarker(parseFloat('#{info[4][0]}'), parseFloat('#{info[4][1]}'), parseFloat('#{info[2]}'), 'rgb('+red+', 0, 0)', 'surprise');
+        
+      //- makeMarker(parseFloat('#{info[4][0]}'), parseFloat('#{info[4][1]}'), parseFloat('#{info[2]}'), 'rgb('+red+','+bg+','+bg+')', 'surprise');
+      makeMarker(parseFloat('#{info[4][0]}'), parseFloat('#{info[4][1]}'), parseFloat('#{info[2]}'), 'rgb('+rg+','+rg+','+blue+')', 'surprise');
