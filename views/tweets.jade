@@ -2,6 +2,7 @@ extends layout
 
 block heading
   script(type='text/javascript', src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDX4Fw2VFDqPU46MERB-3Z5IXTaaXWhF1Y&sensor=false")
+  script(src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js")
   script(type='text/javascript')
     var map;
     function initialize() {
@@ -22,47 +23,59 @@ block heading
     }
 
     function makeMarker(c0, c1, size, color) {
-      var latLng = new google.maps.LatLng(parseFloat(c0), parseFloat(c1));
+      c0 = parseFloat(c0);
+      c1 = parseFloat(c1);
+      var latLng = new google.maps.LatLng(c0, c1);
       var marker = new google.maps.Marker({
         position: latLng,
         map: map,
-        icon: makeCircle(size, color)
+        icon: makeCircle(parseInt(size), color)
       });
       onClick(marker, c0, c1);
     }
 
     function makeCircle(size, color) {
       // algorithm to calculate marker size given the number of tweets
-      if (size <= 15) {
-        size = 9.2;
-      }
-      else {
-        size = Math.pow(size, 0.74);
-      }
+      //if (size <= 15) {
+      //  size = 9.2;
+      //}
+      //else {
+      //  size = Math.pow(size, 0.74);
+      //}
       return {
         path: google.maps.SymbolPath.CIRCLE,
         fillColor: color,
-        fillOpacity: .5,
-        scale: size,
+        fillOpacity: .7,
+        //scale: size,
+        scale: Math.log(size+1)*5,
         strokeColor: 'white',
         strokeWeight: .5
       };
     }
-    
+
     function onClick(marker, c0, c1) {
       google.maps.event.addListener(marker, 'click', function() {
-        html = '<a href = "www.google.com">Test link</a>';
-        document.getElementById("sidebar").innerHTML = html;
+        html = '<h1>You\'ve clicked on a marker with the coordinates: [';
+        var nums = ('' + c0 + c1).replace(/\D+/g,'');
+        html += c0 + ', ' + c1 + ']</h1>';
+        //document.getElementById("sidebar").innerHTML += html;
+        $('.tweets').hide();
+        $('#t'+nums).show();
       });
     }
 
 block content
-  .container(style='height:100%')
+  .container-fluid(style='height:100%')
     .row-fluid(style='height:100%')
-      .span8(style='height:100%')
+      .span9(style='height:100%')
         p Sentiment Legend: yellow = positive, blue = negative, gray = neutral
         #map_canvas(style='width:95%; height:90%')
-      .span4#sidebar
+      .span3#sidebar
+        -var i = 0;
+        each tweet_properties, location in tweets
+          .tweets(id='t'+location.replace(/\D+/g,''))
+            -i++;
+            p #{tweet_properties[0]}
     h1= "map info"
     div(id="container2")
       each tweet_properties, location in tweets
@@ -78,6 +91,8 @@ block content
     initialize();
   each info, loc in tweets
     script(type='text/javascript')
+      var nums = '#{info[4][0]},#{info[4][1]}'.replace(/\D+/g,'');
+      $('#t' + nums).hide();
       var avg_sent = #{info[3]};
 
       //- variables used for yellow-blue color scheme
@@ -91,5 +106,5 @@ block content
       else
         var bg = Math.round((avg_sent-4)/-2*64);
         
-      //- makeMarker(parseFloat('#{info[4][0]}'), parseFloat('#{info[4][1]}'), parseFloat('#{info[2]}'), 'rgb('+red+','+bg+','+bg+')', 'surprise');
-      makeMarker(parseFloat('#{info[4][0]}'), parseFloat('#{info[4][1]}'), parseFloat('#{info[2]}'), 'rgb('+rg+','+rg+','+blue+')', 'surprise');
+      //- makeMarker('#{info[4][0]}', '#{info[4][1]}', '#{info[2]}', 'rgb('+red+','+bg+','+bg+')');
+      makeMarker('#{info[4][0]}', '#{info[4][1]}', '#{info[2]}', 'rgb('+rg+','+rg+','+blue+')');
