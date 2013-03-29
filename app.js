@@ -80,12 +80,6 @@ function loginRequired (req, res, next) {
   }
 }
 
-// app.get('/', loginRequired, function (req, res) {
-//   req.api('account/verify_credentials').get(function (err, profile) {
-//     res.send('Hi ' + profile.screen_name + '! <form action="/status" method="post"><input name="status"><button>Post Status</button></form>');
-//   });
-// });
-
 app.post('/status', loginRequired, function (req, res) {
   req.api('statuses/update').post({
     status: req.body.status
@@ -101,23 +95,6 @@ app.post('/status', loginRequired, function (req, res) {
 app.listen(app.get('port'), function () {
   console.log('Listening on http://' + app.get('host'))
 });
-
-/**
- * Streaming example
- */
-
-var carrier = require('carrier');
-
-app.get('/stream', loginRequired, function (req, res) {
-  req.api.stream('statuses/filter').post({
-    track: ['obama', 'usa']
-  }, function (err, stream) {
-    carrier.carry(stream, function (line) {
-      var line = JSON.parse(line);
-      res.write(line.text + '\n');
-    });
-  });
-})
 
 function getSentiment(tweet, location, callback, ready) {
   // calculates the sentiment of the tweet
@@ -148,7 +125,7 @@ function getTweets(index, req, keyword, callback) {
     q: keyword,
     count: 100,
     geocode: locations[index].toString() + ',25mi',
-    until: '2013-03-26'  // NOTE: this needs to be adjusted!!! if not recent enough, no tweets are returned
+    until: '2013-03-28'  // NOTE: this needs to be adjusted!!! if not recent enough, no tweets are returned
   }, function (err, stream) {
     var location = locations[index];
     var tweets = []; // list of all tweets
@@ -166,15 +143,16 @@ function getTweets(index, req, keyword, callback) {
     }
     results_dict[location][0] = tweets;
     results_dict[location][2] = tweets.length;
-    results_dict[location][4] = location;
+    results_dict[location][4] = loc_names[index];
   });
 }
 
-var locations = [[42.3583,-71.0603], [37.775,-122.4183], [40.7142,-74.0064], //bos, ny, sf
-        [34.0522, -118.2428], [41.85, -87.65], [29.7631, -95.3631]]; //la, chicago, houston
+var locations = [[42.3583,-71.0603], [37.775,-122.4183], [40.7142,-74.0064], //bos, sf, ny
+        [34.0522, -118.2428], [41.8500, -87.6500], [29.7631, -95.3631]]; //la, chicago, houston
         // [39.9522, -75.1642], [33.5722, -112.0880], [29.4724, -98.5251], //philly, phoenix, san antonio
         // [32.8153, -117.1350], [32.7942, -96.7655], [30.3370, -81.6613]]; //sd, dallas, jacksonville
         // global list of locations
+var loc_names = ['Boston', 'San Francisco', 'New York', 'Los Angeles', 'Chicago', 'Houston'];
 var results_dict = {} // global dict mapping loc to tweets list, sentiments list, # tweets, avg sentiment, & loc
 
 app.post('/search', loginRequired, function (req, res) {
@@ -184,7 +162,8 @@ app.post('/search', loginRequired, function (req, res) {
   results_dict = {};
   for (var i in locations) {
     var location = locations[i];
-    results_dict[location] = [[], [], 0, 0, []]; 
+    var name = loc_names[i];
+    results_dict[location] = [[], [], 0, 0, name]; 
   } 
 
   // check whether keyword has already been saved to mongodb
@@ -193,9 +172,8 @@ app.post('/search', loginRequired, function (req, res) {
 
     // keyword has been searched already
     if (docs.length>0) {
-      console.log("keyword has been searched already!");
 
-      // populate resulst_dict
+      // populate results_dict
       for (var i in docs){
         var loc_dict = docs[i];
         var location = loc_dict.loc;
@@ -203,11 +181,10 @@ app.post('/search', loginRequired, function (req, res) {
         results_dict[location][1] = loc_dict.sentiments;
         results_dict[location][2] = loc_dict.num_tweets;
         results_dict[location][3] = loc_dict.avg_sentiment;
-        results_dict[location][4] = location;
       }
 
       // render jade with db info
-      res.render('tweets', { tweets:results_dict, title: 'tweets' })
+      res.render('tweets', { tweets:results_dict, title: 'tweets', keyword: keyword.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();})})
       return;
     }
     
@@ -258,12 +235,12 @@ app.post('/search', loginRequired, function (req, res) {
           }
           // add average sentiment to results dict
           var avg = sum_sentiments / num_tweets
-          results_dict[location][3] = avg;
+          results_dict[location][3] = avg.toPrecision(3);
 
           // save each location's info to mongodb
           location = location.toString(); // location list must be formatted properly (list of floats)
           location = location.split(',');
-          var locTweets = new LocTweets({ keyword: keyword, tweets: tweets, sentiments: sentiments, num_tweets: num_tweets, avg_sentiment: avg, loc: [parseFloat(location[0]), parseFloat(location[1])]});
+          var locTweets = new LocTweets({ keyword: keyword, tweets: tweets, sentiments: sentiments, num_tweets: num_tweets, avg_sentiment: avg.toPrecision(3), loc: [parseFloat(location[0]), parseFloat(location[1])]});
           locTweets.save(function (err) {
             if (err)
               return console.log(err);
@@ -271,7 +248,7 @@ app.post('/search', loginRequired, function (req, res) {
         }
 
         // render jade file
-        res.render('tweets', { tweets:results_dict, title: 'tweets' })
+        res.render('tweets', { tweets:results_dict, title: 'tweets', keyword: keyword.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();})})
       });
 
     }
@@ -285,8 +262,3 @@ app.post('/search', loginRequired, function (req, res) {
 app.get('/', loginRequired, function(req, res){
   res.render('index', { title: 'Search for Tweets by Keyword' })
 });
-
-app.get('/test', function(req, res){
-  res.render('index', {title: 'Title'})
-});
-  

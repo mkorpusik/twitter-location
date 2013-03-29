@@ -6,8 +6,6 @@ block heading
   script(type='text/javascript')
     var map;
     function initialize() {
-      var sw = new google.maps.LatLng(22.674847,-124.101562);
-      var ne = new google.maps.LatLng(50.120578,-64.6875);
       var mapOptions = {
         center: new google.maps.LatLng(39.8282, -98.5795),
         zoom: 4,
@@ -20,6 +18,17 @@ block heading
       };
       map = new google.maps.Map(document.getElementById("map_canvas"),
           mapOptions);
+
+      var legend = document.getElementById('legend');
+      content = '<h4>Sentiment Legend</h4>';
+      content += '<p><div class="color yellow"></div>Positive</p>';
+      content += '<p><div class="color gray"></div>Neutral</p>';
+      content += '<p><div class="color blue"></div>Negative</p>';
+      legend.innerHTML = content;
+      map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend);
+
+      var keyword = document.getElementById('keyword');
+      map.controls[google.maps.ControlPosition.TOP_CENTER].push(keyword);
     }
 
     function makeMarker(c0, c1, size, color) {
@@ -34,41 +43,11 @@ block heading
       onClick(marker, c0, c1);
     }
 
-    function makeLegend() {
-      var legend = document.getElementById('legend');      
-      map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(document.getElementById('legend'));
-      
-      //- for (var style in styles) {
-      //-   var name = style.name;
-      //-   var icon = style.icon;
-      //-   var div = document.createElement('div');
-      //-   div.innerHTML = '<img src="' + icon + '"> ' + name;
-      //-   legend.appendChild(div);
-      //- }
-
-      var colors = [["yellow","positive"], ["blue","negative"], ["gray","neutral"]];
-      for (var i in colors) {
-        var color = colors[i][0];
-        var sentiment = colors[i][1];
-        var div = document.createElement('div');
-        div.innerHTML = color+': '+sentiment+' sentiment';
-        legend.appendChild(div);
-      }      
-    }
-
     function makeCircle(size, color) {
-      // algorithm to calculate marker size given the number of tweets
-      //if (size <= 15) {
-      //  size = 9.2;
-      //}
-      //else {
-      //  size = Math.pow(size, 0.74);
-      //}
       return {
         path: google.maps.SymbolPath.CIRCLE,
         fillColor: color,
         fillOpacity: .7,
-        //scale: size,
         scale: Math.log(size+1)*5,
         strokeColor: 'white',
         strokeWeight: .5
@@ -76,13 +55,15 @@ block heading
     }
 
     function onClick(marker, c0, c1) {
+      var nums = ('' + c0 + c1).replace(/\D+/g,'');
       google.maps.event.addListener(marker, 'click', function() {
-        html = '<h1>You\'ve clicked on a marker with the coordinates: [';
-        var nums = ('' + c0 + c1).replace(/\D+/g,'');
-        html += c0 + ', ' + c1 + ']</h1>';
-        //document.getElementById("sidebar").innerHTML += html;
-        $('.tweets').hide();
-        $('#t'+nums).show();
+        if ($('#t'+nums).is(':visible')) {
+          $('.tweets').hide();
+          $('#default').show()
+        } else {
+          $('.tweets').hide();
+          $('#t'+nums).show();
+        }
       });
     }
 
@@ -90,32 +71,34 @@ block content
   .container-fluid(style='height:100%')
     .row-fluid(style='height:100%')
       .span9(style='height:100%')
-        p Sentiment Legend: yellow = positive, blue = negative, gray = neutral
-        #map_canvas(style='width:95%; height:90%')
-        #legend(style='background:white; padding: 10px')
-      .span3#sidebar(style='overflow-y:scroll')
+        #map_canvas(style='width:95%; height:85%;')
+        #legend(style='background-color:rgba(255, 255, 255, 0.5); padding: 10px;')
+        #keyword(style='background-color:rgba(255, 255, 255, 0.5); padding: 10px; width:100%;')
+          center
+            h1 Tweets about #{keyword}
+      .span3#sidebar(style='height:100%;')
         -var i = 0;
+        .tweets#default(style='height:100%')
+          h3 Please click a city on the map to see details
         each tweet_properties, location in tweets
-          .tweets(id='t'+location.replace(/\D+/g,''))
+          .tweets(id='t'+location.replace(/\D+/g,''), style='height:100%')
             -i++;
-            p #{tweet_properties[0]}
-    h1= "map info"
-    div(id="container2")
-      each tweet_properties, location in tweets
-        div(id="wrapper")
-          p Location: #{location}
-          //- each location has tweets, number tweets, sentiments, and average sentiment
-          p Number of tweets: #{tweet_properties[2]}
-          p Average sentiment: #{tweet_properties[3]}
-          p Tweets: #{tweet_properties[0]}
-          p Sentiments: #{tweet_properties[1]}
+            .cityInfo(style='display:block;')
+              h3 #{tweet_properties[4]}
+              h4 #{tweet_properties[2]} recent tweets
+              h4 Average sentiment: #{tweet_properties[3]}
+              br
+              h4 Tweets:
+            .tweetContent(style='display:block; height:55%; overflow-y:scroll')
+              each tweet in tweet_properties[0]
+                p #{tweet}
 
   script(type='text/javascript')
     initialize();
   each info, loc in tweets
     script(type='text/javascript')
-      makeLegend();
-      var nums = '#{info[4][0]},#{info[4][1]}'.replace(/\D+/g,'');
+      var nums = '#{loc}'.replace(/\D+/g,'');
+      var locs = '#{loc}'.split(',');
       $('#t' + nums).hide();
       var avg_sent = #{info[3]};
 
@@ -129,6 +112,5 @@ block content
         var bg = Math.round(avg_sent/2*64);
       else
         var bg = Math.round((avg_sent-4)/-2*64);
-        
-      //- makeMarker('#{info[4][0]}', '#{info[4][1]}', '#{info[2]}', 'rgb('+red+','+bg+','+bg+')');
-      makeMarker('#{info[4][0]}', '#{info[4][1]}', '#{info[2]}', 'rgb('+rg+','+rg+','+blue+')');
+
+      makeMarker(locs[0], locs[1], '#{info[2]}', 'rgb('+rg+','+rg+','+blue+')');
