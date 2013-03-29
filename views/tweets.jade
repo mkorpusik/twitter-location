@@ -32,15 +32,13 @@ block heading
     }
 
     function makeCircle(size, color) {
-      // size is the number of tweets
-      console.log(size);
+      // algorithm to calculate marker size given the number of tweets
       if (size <= 15) {
         size = 9.2;
       }
       else {
         size = Math.pow(size, 0.74);
       }
-      console.log(size);
       return {
         path: google.maps.SymbolPath.CIRCLE,
         fillColor: color,
