@@ -190,7 +190,6 @@ app.post('/search', loginRequired, function (req, res) {
     
     // call Twitter search API if keyword not in db yet
     else if (docs.length==0){
-      console.log("new keyword");
 
       // searches for all tweets with keyword in Boston, SF, and NY
       async.parallel([

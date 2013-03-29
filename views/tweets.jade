@@ -91,10 +91,21 @@ block content
               h4 Tweets:
             .tweetContent(style='display:block; height:55%; overflow-y:scroll')
               each tweet in tweet_properties[0]
-                p #{tweet}
+                .tweet(style='margin-bottom:8pt;') #{tweet}
 
   script(type='text/javascript')
     initialize();
+
+    function urlify(text) {
+      var urlRegex = /(https?:\/\/[^\s]+)/g;
+      return text.replace(urlRegex, function(url) {
+          return '<a href="' + url + '" target="_blank">' + url + '</a>';
+      })
+    }
+
+    $('.tweet').each(function() {
+      this.innerHTML = urlify(this.innerHTML);
+    });
   each info, loc in tweets
     script(type='text/javascript')
       var nums = '#{loc}'.replace(/\D+/g,'');
