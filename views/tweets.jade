@@ -37,12 +37,12 @@ block heading
 
     function onClick(marker, tweets) {
       var message = tweets;
-      var infowindow = new google.maps.InfoWindow(
-          { content: message,
-            size: new google.maps.Size(50,50)
-          });
+      //- var infowindow = new google.maps.InfoWindow(
+      //-     { content: message,
+      //-       size: new google.maps.Size(50,50)
+      //-     });
       google.maps.event.addListener(marker, 'click', function() {
-        infowindow.open(map,marker);
+        //- infowindow.open(map,marker);
       });
     }
 
@@ -50,6 +50,7 @@ block content
   .container(style='height:100%')
     .row-fluid(style='height:100%')
       .span8(style='height:100%')
+        p Sentiment Legend: red = positive, black = negative
         #map_canvas(style='width:95%; height:90%')
       h1= "map info"
       div(id="container2")
@@ -66,5 +67,11 @@ block content
     initialize();
   each info, loc in tweets
     script(type='text/javascript')
-      makeMarker(parseFloat('#{info[4][0]}'), parseFloat('#{info[4][1]}'), parseFloat('#{info[2]}'), 'rgb(20,128,173)', 'surprise');
-
+      var avg_sent = #{info[3]};
+      var red = Math.round(avg_sent/4*255);
+      if (avg_sent <= 2)
+        var bg = Math.round(avg_sent/2*64);
+      else
+        var bg = Math.round((avg_sent-4)/-2*64);
+      console.log(red, bg, bg)
+      makeMarker(parseFloat('#{info[4][0]}'), parseFloat('#{info[4][1]}'), parseFloat('#{info[2]}'), 'rgb('+red+', 0, 0)', 'surprise');
