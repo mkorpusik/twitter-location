@@ -1,9 +1,12 @@
 extends layout
 
 block content
-  .container
-    h1= title
+  .container(style='color: rgb(53, 0, 53); margin-left:250px')
+    h1(style='margin-left:140px; font-size:50px')= "{grapevine}"
+    p(style='font-size:20px; margin-top:50px')= "Interested in knowing what your customers think of you?"
+    p(style='font-size:20px; margin-right:350px; margin-top:20px')= "Curious about how you compare to competitors, or how you can target customers in specific regions?"
+    p(style='margin-bottom:30px; margin-right:350px; margin-top:20px')= "Simply type in a keyword. We show you where people are talking about you, and how they feel about you. After all, we heard it through the grapevine."
     form(id="get_tweets", action='/search', method='post')
-      input(type='text', placeholder='keyword', name='keyword')
+      input(type='text', placeholder='keyword', name='keyword', style='margin-left:175px')
       div(class="control-group")
-        input(class="btn btn-large btn-primary", type="submit", value="Search!")
+        input(class="btn btn-large btn-primary", type="submit", value="Search!", style='margin-left:230px; margin-top:20px')
